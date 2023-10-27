@@ -1,6 +1,7 @@
 const db = require('./db')
-const { Movie } = db.models;
-// const Sequelize = require('sequelize');
+const { Movie, Person } = db.models;
+// Destructure to extract the property Op from db.Sequelize
+const { Op } = db.Sequelize;
 
 // // Moved to db/index.js
 // const sequelize = new Sequelize({
@@ -30,12 +31,13 @@ const { Movie } = db.models;
         // await sequelize.authenticate();
         // console.log('Connection to the database successful!');
 
+        
         // Instance of the Movie class represents a database row
         const movie = await Movie.create({
             // passing an object with a title property
-            title: "",
+            title: "a",
             runtime: 81,
-            releaseDate: "1708-11-22",
+            releaseDate: "1908-11-22",
             isAvailableOnVHS: true,
         });
         // converting the instance to JSON
@@ -76,6 +78,103 @@ const { Movie } = db.models;
         const moviesJSON = movieInstances.map(movie => movie.toJSON());
         console.log(moviesJSON);
 
+
+        // DATA for PERSON
+        await Person.create({
+            firstName: "mary",
+            lastName: "gilmore",
+        })
+
+        await Person.create({
+            firstName: "Jim",
+            lastName: "Beluchi",
+        })
+
+
+
+        // New Instance using the build method.
+        // Build() is a non-persistent model instance
+        const movie3 = await Movie.build({
+            title: "Toy Story 3",
+            runtime: 103,
+            releaseDate: '2010-06-18',
+            isAvailableOnVHS: false,
+        });
+        await movie3.save(); // with build()  you need to save(). This will actually save the record.
+        console.log(movie3.toJSON());
+
+
+
+        // To retreive records by primary key, we use findByPk()
+        const movieById = await Movie.findByPk(1);      // pass the primary key, (1) in this case
+        console.log(movieById.toJSON());
+
+
+        // To retreive one specific element, the first one matching, we  use findOne()
+        const movieByRuntime = await Movie.findOne({where: {runtime: 123 }});
+        console.log(movieByRuntime.toJSON());
+
+        // To retreive all records matching criteria, we use findAll()
+        const movies = await Movie.findAll({
+            attributes: ['id', 'title'],    // return only id and title,  then added releaseDate and runtime
+            where: {
+                // releaseDate: {
+                //     [Op.gte]: '2004-01-01'  // greater than or equal to (gte) date
+                // },
+                // runtime: {
+                //     [Op.gt]: '30'       // greater than 30 min
+                // }
+                // isAvailableOnVHS: true,     // can add filter criteria to findAll()
+                title: {
+                    [Op.endsWith]: '3'
+                }
+            },
+            order: [['id', 'DESC']] // IDs in descending order
+        });
+        console.log(movies.map(movie => movie.toJSON()));
+
+
+        // To update, first find record
+        const toyStory3 = await Movie.findByPk(6)
+        console.log(toyStory3.toJSON());
+
+        // Update with save()
+        toyStory3.isAvailableOnVHS = true;
+        await toyStory3.save();
+
+        console.log(toyStory3.get({plain: true}));      // calling get({plain:true}) is same as calling.toJSON()
+        
+        
+        
+        // UPDATE
+        // To update a record with update()
+        await toyStory3.update({
+            title: 'Trinket Tale 3', // new title
+            releaseDate: '2009-01-01'
+        },{
+            fields: ['isAvailableOnVHS', 'title']      // adding whitelist of fields that can ben updated
+        });
+        console.log(toyStory3.get({plain: true}));      // calling get({plain:true}) is same as calling.toJSON()
+
+
+
+
+        // DELETE
+        // To delete a record, first find it
+        const aMovie = await Movie.findByPk(1);
+        console.log(aMovie.toJSON());
+
+        // Find and log all movies
+        const allMovies = await Movie.findAll({
+            attributes: ["id", "title"],
+        });
+        console.log(allMovies.map(movie => movie.toJSON()));
+        
+        // call destroy to delete a record
+        await aMovie.destroy();
+        
+        // See all movies again and deleted  one is missing.
+        console.log(allMovies.map(movie => movie.toJSON()));
 
     } catch(error){
         if (error.name === "SequelizeValidationError"){

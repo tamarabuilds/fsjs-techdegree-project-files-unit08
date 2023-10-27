@@ -56,7 +56,17 @@ module.exports = (sequelize) => {
             defaultValue: false, // set default value
             // validate: {},
         },
-    }, { sequelize });
+    }, 
+    // Model options object
+    { 
+        // timestamps: false, // disable timestamps
+        // freezeTableName: true, // disable plural table names
+        // modelName: 'movieSetManually', // set model name to 'movie'; table name will not be movies
+        // tableName: 'my-movies-table', // table name change
+
+        paranoid: true,  // enable 'soft' deletes to mark as delete but not remove from database
+        sequelize 
+    });
 
     return Movie;
 }
